@@ -40,9 +40,10 @@ func TestRedisClient(t *testing.T) {
 			keys := []string{"key1", "key2", "key3"}
 			bufs := [][]byte{[]byte("data1"), []byte("data2"), []byte("data3")}
 			miss := []string{"miss1", "miss2"}
+			ttl := time.Minute
 
 			// set values
-			err := tt.client.MSet(ctx, keys, bufs)
+			err := tt.client.MSet(ctx, keys, bufs, ttl)
 			require.Nil(t, err)
 
 			// get keys

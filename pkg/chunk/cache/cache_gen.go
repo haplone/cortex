@@ -2,6 +2,7 @@ package cache
 
 import (
 	"context"
+	"time"
 )
 
 type contextKey int
@@ -21,9 +22,9 @@ func NewCacheGenNumMiddleware(downstreamCache Cache) Cache {
 }
 
 // Store adds cache gen number to keys before calling Store method of downstream cache.
-func (c GenNumMiddleware) Store(ctx context.Context, keys []string, buf [][]byte) {
+func (c GenNumMiddleware) Store(ctx context.Context, keys []string, buf [][]byte, ttl time.Duration) {
 	keys = addCacheGenNumToCacheKeys(ctx, keys)
-	c.downstreamCache.Store(ctx, keys, buf)
+	c.downstreamCache.Store(ctx, keys, buf, ttl)
 }
 
 // Fetch adds cache gen number to keys before calling Fetch method of downstream cache.

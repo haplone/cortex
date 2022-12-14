@@ -2,6 +2,7 @@ package queryrange
 
 import (
 	"context"
+	"github.com/prometheus/common/model"
 	"testing"
 	"time"
 
@@ -188,9 +189,10 @@ func TestLimitsMiddleware_MaxQueryLength(t *testing.T) {
 }
 
 type mockLimits struct {
-	maxQueryLookback  time.Duration
-	maxQueryLength    time.Duration
-	maxCacheFreshness time.Duration
+	maxQueryLookback     time.Duration
+	maxQueryLength       time.Duration
+	maxCacheFreshness    time.Duration
+	outOfOrderTimeWindow model.Duration
 }
 
 func (m mockLimits) MaxQueryLookback(string) time.Duration {
@@ -211,6 +213,10 @@ func (m mockLimits) MaxCacheFreshness(string) time.Duration {
 
 func (m mockLimits) QueryVerticalShardSize(userID string) int {
 	return 0
+}
+
+func (m mockLimits) OutOfOrderTimeWindow(userID string) model.Duration {
+	return m.outOfOrderTimeWindow
 }
 
 type mockHandler struct {

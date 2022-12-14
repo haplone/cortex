@@ -68,6 +68,8 @@ type Limits struct {
 	MaxLocalMetadataPerMetric           int `yaml:"max_metadata_per_metric" json:"max_metadata_per_metric"`
 	MaxGlobalMetricsWithMetadataPerUser int `yaml:"max_global_metadata_per_user" json:"max_global_metadata_per_user"`
 	MaxGlobalMetadataPerMetric          int `yaml:"max_global_metadata_per_metric" json:"max_global_metadata_per_metric"`
+	// Max allowed time window for out-of-order samples.
+	OutOfOrderTimeWindow model.Duration `yaml:"out_of_order_time_window" json:"out_of_order_time_window" category:"experimental"`
 
 	// Querier enforced limits.
 	MaxChunksPerQuery            int            `yaml:"max_fetched_chunks_per_query" json:"max_fetched_chunks_per_query"`
@@ -634,6 +636,11 @@ func (o *Overrides) AlertmanagerMaxAlertsCount(userID string) int {
 
 func (o *Overrides) AlertmanagerMaxAlertsSizeBytes(userID string) int {
 	return o.GetOverridesForUser(userID).AlertmanagerMaxAlertsSizeBytes
+}
+
+// OutOfOrderTimeWindow returns the out-of-order time window for the user.
+func (o *Overrides) OutOfOrderTimeWindow(userID string) model.Duration {
+	return o.GetOverridesForUser(userID).OutOfOrderTimeWindow
 }
 
 // GetOverridesForUser returns the per-tenant limits with overrides.

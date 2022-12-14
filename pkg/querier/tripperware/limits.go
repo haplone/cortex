@@ -1,6 +1,9 @@
 package tripperware
 
-import "time"
+import (
+	"github.com/prometheus/common/model"
+	"time"
+)
 
 // Limits allows us to specify per-tenant runtime limits on the behavior of
 // the query handling code.
@@ -21,4 +24,7 @@ type Limits interface {
 
 	// QueryVerticalShardSize returns the maximum number of queriers that can handle requests for this user.
 	QueryVerticalShardSize(userID string) int
+
+	// OutOfOrderTimeWindow returns the out-of-order time window for the user.
+	OutOfOrderTimeWindow(userID string) model.Duration
 }

@@ -86,9 +86,9 @@ type FifoCache struct {
 }
 
 type cacheEntry struct {
-	updated time.Time
-	key     string
-	value   []byte
+	expiresAt time.Time
+	key       string
+	value     []byte
 }
 
 // NewFifoCache returns a new initialised FifoCache of size.
@@ -197,14 +197,17 @@ func (c *FifoCache) Fetch(ctx context.Context, keys []string) (found []string, b
 }
 
 // Store implements Cache.
-func (c *FifoCache) Store(ctx context.Context, keys []string, values [][]byte) {
+func (c *FifoCache) Store(ctx context.Context, keys []string, values [][]byte, ttl time.Duration) {
 	c.entriesAdded.Inc()
 
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
+	if ttl == 0 {
+		ttl = c.validity
+	}
 	for i := range keys {
-		c.put(keys[i], values[i])
+		c.put(keys[i], values[i], ttl)
 	}
 }
 
@@ -223,7 +226,7 @@ func (c *FifoCache) Stop() {
 	c.memoryBytes.Set(float64(0))
 }
 
-func (c *FifoCache) put(key string, value []byte) {
+func (c *FifoCache) put(key string, value []byte, ttl time.Duration) {
 	// See if we already have the item in the cache.
 	element, ok := c.entries[key]
 	if ok {
@@ -235,9 +238,9 @@ func (c *FifoCache) put(key string, value []byte) {
 	}
 
 	entry := &cacheEntry{
-		updated: time.Now(),
-		key:     key,
-		value:   value,
+		expiresAt: time.Now().Add(ttl),
+		key:       key,
+		value:     value,
 	}
 	entrySz := sizeOf(entry)
 
@@ -284,8 +287,15 @@ func (c *FifoCache) Get(ctx context.Context, key string) ([]byte, bool) {
 	element, ok := c.entries[key]
 	if ok {
 		entry := element.Value.(*cacheEntry)
-		if c.validity == 0 || time.Since(entry.updated) < c.validity {
+		if entry.expiresAt.After(time.Now()) {
 			return entry.value, true
+		} else {
+			// if expired then remove it now
+			evicted := c.lru.Remove(element).(*cacheEntry)
+			delete(c.entries, evicted.key)
+			c.currSizeBytes -= sizeOf(evicted)
+			c.entriesCurrent.Dec()
+			c.entriesEvicted.Inc()
 		}
 
 		c.totalMisses.Inc()

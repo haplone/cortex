@@ -427,10 +427,11 @@ http_requests_total`,
 }
 
 type mockLimits struct {
-	maxQueryLookback  time.Duration
-	maxQueryLength    time.Duration
-	maxCacheFreshness time.Duration
-	shardSize         int
+	maxQueryLookback     time.Duration
+	maxQueryLength       time.Duration
+	maxCacheFreshness    time.Duration
+	shardSize            int
+	outOfOrderTimeWindow model.Duration
 }
 
 func (m mockLimits) MaxQueryLookback(string) time.Duration {
@@ -451,6 +452,10 @@ func (m mockLimits) MaxCacheFreshness(string) time.Duration {
 
 func (m mockLimits) QueryVerticalShardSize(userID string) int {
 	return m.shardSize
+}
+
+func (m mockLimits) OutOfOrderTimeWindow(userID string) model.Duration {
+	return m.outOfOrderTimeWindow
 }
 
 type singleHostRoundTripper struct {

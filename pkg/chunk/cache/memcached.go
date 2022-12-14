@@ -234,13 +234,16 @@ loopResults:
 }
 
 // Store stores the key in the cache.
-func (c *Memcached) Store(ctx context.Context, keys []string, bufs [][]byte) {
+func (c *Memcached) Store(ctx context.Context, keys []string, bufs [][]byte, ttl time.Duration) {
+	if ttl == 0 {
+		ttl = c.cfg.Expiration
+	}
 	for i := range keys {
 		err := instr.CollectedRequest(ctx, "Memcache.Put", c.requestDuration, memcacheStatusCode, func(_ context.Context) error {
 			item := memcache.Item{
 				Key:        keys[i],
 				Value:      bufs[i],
-				Expiration: int32(c.cfg.Expiration.Seconds()),
+				Expiration: int32(ttl.Seconds()),
 			}
 			return c.memcache.Set(&item)
 		})

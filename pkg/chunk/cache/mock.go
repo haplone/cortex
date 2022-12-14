@@ -3,6 +3,7 @@ package cache
 import (
 	"context"
 	"sync"
+	"time"
 )
 
 type mockCache struct {
@@ -10,7 +11,7 @@ type mockCache struct {
 	cache map[string][]byte
 }
 
-func (m *mockCache) Store(_ context.Context, keys []string, bufs [][]byte) {
+func (m *mockCache) Store(_ context.Context, keys []string, bufs [][]byte, ttl time.Duration) {
 	m.Lock()
 	defer m.Unlock()
 	for i := range keys {

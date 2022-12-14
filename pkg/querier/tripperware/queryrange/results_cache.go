@@ -642,7 +642,8 @@ func (s resultsCache) put(ctx context.Context, key string, extents []Extent) {
 		return
 	}
 
-	s.cache.Store(ctx, []string{cache.HashKey(key)}, [][]byte{buf})
+	// toDo 如果ooo，这边需要调小ttl
+	s.cache.Store(ctx, []string{cache.HashKey(key)}, [][]byte{buf}, time.Minute)
 }
 
 func jaegerSpanID(ctx context.Context) string {

@@ -2,6 +2,7 @@ package cache
 
 import (
 	"context"
+	"time"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -94,8 +95,11 @@ func (c *RedisCache) Fetch(ctx context.Context, keys []string) (found []string, 
 }
 
 // Store stores the key in the cache.
-func (c *RedisCache) Store(ctx context.Context, keys []string, bufs [][]byte) {
-	err := c.redis.MSet(ctx, keys, bufs)
+func (c *RedisCache) Store(ctx context.Context, keys []string, bufs [][]byte, ttl time.Duration) {
+	if ttl == 0 {
+		ttl = c.redis.expiration
+	}
+	err := c.redis.MSet(ctx, keys, bufs, ttl)
 	if err != nil {
 		level.Error(util_log.WithContext(ctx, c.logger)).Log("msg", "failed to put to redis", "name", c.name, "err", err)
 	}

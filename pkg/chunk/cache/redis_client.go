@@ -88,7 +88,7 @@ func (c *RedisClient) Ping(ctx context.Context) error {
 	return nil
 }
 
-func (c *RedisClient) MSet(ctx context.Context, keys []string, values [][]byte) error {
+func (c *RedisClient) MSet(ctx context.Context, keys []string, values [][]byte, ttl time.Duration) error {
 	var cancel context.CancelFunc
 	if c.timeout > 0 {
 		ctx, cancel = context.WithTimeout(ctx, c.timeout)
@@ -101,7 +101,7 @@ func (c *RedisClient) MSet(ctx context.Context, keys []string, values [][]byte) 
 
 	pipe := c.rdb.TxPipeline()
 	for i := range keys {
-		pipe.Set(ctx, keys[i], values[i], c.expiration)
+		pipe.Set(ctx, keys[i], values[i], ttl)
 	}
 	_, err := pipe.Exec(ctx)
 	return err
@@ -125,6 +125,7 @@ func (c *RedisClient) MGet(ctx context.Context, keys []string) ([][]byte, error)
 		for i, key := range keys {
 			cmd := c.rdb.Get(ctx, key)
 			err := cmd.Err()
+			cmd.Time()
 			if err == redis.Nil {
 				// if key not found, response nil
 				continue
